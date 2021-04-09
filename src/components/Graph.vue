@@ -1,73 +1,91 @@
 <template>
-  <div>
-    <canvas id="order-chart"></canvas>
-  </div>
+    <div>
+        <h2 class="text-center mb-4">Spēlētāja stāvokļu grafiks</h2>
+        <canvas id="order-chart"></canvas>
+    </div>
 </template>
 
 <script>
-import Chart from 'chart.js'
+import Chart from "chart.js/auto";
 
 export default {
-  name: 'Graph',
-  mounted() {
-    const ctx = document.getElementById('order-chart')
-    const charts = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: [
-          'Mercury',
-          'Venus',
-          'Earth',
-          'Mars',
-          'Jupiter',
-          'Saturn',
-          'Uranus',
-          'Neptune',
-        ],
-        datasets: [
-          {
-            label: 'Number of Moons',
-            data: [0, 0, 1, 2, 79, 82, 27, 14],
-            backgroundColor: 'rgba(54,73,93,.5)',
-            borderColor: '#36495d',
-            borderWidth: 3,
-          },
-          {
-            label: 'Planetary Mass (relative to the Sun x 10^-6)',
-            data: [
-              0.166,
-              2.081,
-              3.003,
-              0.323,
-              954.792,
-              285.886,
-              43.662,
-              51.514,
-            ],
-            backgroundColor: 'rgba(71, 183,132,.5)',
-            borderColor: '#47b784',
-            borderWidth: 3,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        lineTension: 1,
-        scales: {
-          yAxes: [
-            {
-              ticks: {
-                beginAtZero: true,
-                padding: 25,
-              },
-            },
-          ],
+    name: "Graph",
+    props: {
+        chartData: {
+            type: Object,
+            required: true,
         },
-      },
-    })
+    },
+    data: () => ({
+        graph: null,
+    }),
+    watch: {
+        chartData: {
+            deep: true,
+            handler(newData) {
+                this.drawGraph(newData);
+            },
+        },
+    },
+    mounted() {
+        this.drawGraph();
+    },
+    methods: {
+        async drawGraph(data = []) {
+            const ctx = document.getElementById("order-chart");
 
-    console.log(charts)
-  },
-  methods: {},
-}
+            if (this.graph) {
+                this.graph.destroy();
+            }
+
+            if (!data?.incomingOrders?.length) {
+                return;
+            }
+
+            const labels = data?.incomingOrders?.map((d, i) => ++i);
+
+            this.graph = await new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: "Ienākošie pasūtijumi",
+                            data: data.incomingOrders,
+                            borderColor: "rgba(54,73,93,.5)",
+                            borderWidth: 3,
+                        },
+                        {
+                            label: "Pasūtīts",
+                            data: data.ordered,
+                            borderColor: "rgba(71, 183,132,.5",
+                            borderWidth: 3,
+                        },
+                        {
+                            label: "Krājumi",
+                            data: data.stock,
+                            borderColor: "rgba(255, 165, 0,.5)",
+                            borderWidth: 3,
+                        },
+                        {
+                            label: "Atpakaļsūtijumi",
+                            data: data.backlog,
+                            borderColor: "rgba(255, 99, 71,.5)",
+                            borderWidth: 3,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    fill: false,
+                    scales: {
+                        y: {
+                            suggestedMin: -20,
+                        }
+                    }
+                },
+            });
+        },
+    },
+};
 </script>

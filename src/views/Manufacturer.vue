@@ -1,8 +1,19 @@
 <template>
     <div class="container">
-        <h2 class="mb-3">Manufacturer</h2>
+        <div class="row align-items-center mb-4">
+            <div class="col-12 col-md-3">
+                <h2 class="mb-3">Manufacturer</h2>
+            </div>
+            <div class="col-12 col-md-9">
+                <img
+                    src="@/assets/truck.png"
+                    class="manufacturer-truck"
+                    height="50"
+                />
+            </div>
+        </div>
         <div class="row">
-            <div class="col-12 col-sm-6 mb-4">
+            <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
                         <span class="input-group-text"
@@ -18,7 +29,7 @@
                     />
                 </div>
             </div>
-            <div class="col-12 col-sm-6 mb-4">
+            <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
                         <span class="input-group-text"
@@ -26,14 +37,14 @@
                         >
                     </div>
                     <input
-                        v-model="quantityToManufacture"
+                        v-model.number="quantityToManufacture"
                         type="text"
                         class="form-control"
                         aria-label="Preču ražošanas daudzums"
                     />
                 </div>
             </div>
-            <div class="col-12 col-sm-6 mb-4">
+            <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
                         <span class="input-group-text"
@@ -49,7 +60,7 @@
                     />
                 </div>
             </div>
-            <div class="col-12 col-sm-6 mb-4">
+            <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
                         <span class="input-group-text"
@@ -66,23 +77,33 @@
                 </div>
             </div>
         </div>
-        <div class="col-6">Stock: {{ stock }}</div>
-        <div class="col-6">Backlog: {{ backlogOrders }}</div>
+        <div class="row mb-4">
+            <div class="col-6 d-flex align-items-center">
+                <img src="@/assets/stock.png" class="mr-2" height="50" />
+                <p class="m-0">Krājumi: {{ stock }}</p>
+            </div>
+            <div class="col-6 d-flex align-items-center">
+                <img src="@/assets/out-stock.png" class="mr-2" height="50" />
+                <p class="m-o">Atpakaļsūtijumi: {{ backlogOrders }}</p>
+            </div>
+        </div>
         <button
             type="button"
-            class="btn btn-primary btn-lg btn-block"
+            class="btn btn-primary btn-lg btn-block mb-5"
             @click="manufacture()"
         >
             Sākt ražošanu
         </button>
-        <graph />
+        <graph :chart-data="stats" />
     </div>
 </template>
 <script>
+import Graph from "@/components/Graph";
+
 export default {
     name: "Manufacturer",
     components: {
-        Graph: () => import("@/components/Graph.vue"),
+        Graph,
     },
     props: {
         incomingOrder: {
@@ -102,39 +123,8 @@ export default {
             stats: {
                 incomingOrders: [],
                 ordered: [],
-            },
-            chartData: {
-                labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-                datasets: [
-                    {
-                        label: "# of Votes",
-                        data: [12, 19, 3, 5, 2, 3],
-                        backgroundColor: [
-                            "rgba(255, 99, 132, 0.2)",
-                            "rgba(54, 162, 235, 0.2)",
-                            "rgba(255, 206, 86, 0.2)",
-                            "rgba(75, 192, 192, 0.2)",
-                            "rgba(153, 102, 255, 0.2)",
-                            "rgba(255, 159, 64, 0.2)",
-                        ],
-                        borderColor: [
-                            "rgba(255, 99, 132, 1)",
-                            "rgba(54, 162, 235, 1)",
-                            "rgba(255, 206, 86, 1)",
-                            "rgba(75, 192, 192, 1)",
-                            "rgba(153, 102, 255, 1)",
-                            "rgba(255, 159, 64, 1)",
-                        ],
-                        borderWidth: 1,
-                    },
-                ],
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                    },
-                },
+                stock: [],
+                backlog: [],
             },
         };
     },
@@ -174,7 +164,26 @@ export default {
         addToStats() {
             this.stats.incomingOrders.push(this.incomingOrderQty);
             this.stats.ordered.push(this.quantityToManufacture);
+            this.stats.stock.push(this.stock);
+            this.stats.backlog.push(this.backlogOrders);
         },
     },
 };
 </script>
+
+<style scoped>
+.manufacturer-truck {
+    animation: drive 3s;
+    position: relative;
+}
+
+@keyframes drive {
+    from {
+        left: 0;
+    }
+
+    to {
+        left: 80%;
+    }
+}
+</style>
