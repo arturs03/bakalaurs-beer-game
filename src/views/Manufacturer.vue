@@ -1,15 +1,22 @@
 <template>
     <div class="container">
+        <h2 class="mb-3 text-center">Raožotājs</h2>
         <div class="row align-items-center mb-4">
-            <div class="col-12 col-md-3">
-                <h2 class="mb-3">Manufacturer</h2>
-            </div>
-            <div class="col-12 col-md-9">
-                <img
-                    src="@/assets/truck.png"
-                    class="manufacturer-truck"
-                    height="50"
-                />
+            <div class="col-12">
+                <div class="d-flex align-items-baseline w-100">
+                    <img src="@/assets/warehouse.png" height="60" />
+                    <img
+                        src="@/assets/truck.png"
+                        class="pb-2"
+                        height="30"
+                        ref="animatedTruck"
+                    />
+                    <img
+                        src="@/assets/warehouse.png"
+                        class="ml-auto"
+                        height="60"
+                    />
+                </div>
             </div>
         </div>
         <div class="row">
@@ -47,9 +54,9 @@
             <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
-                        <span class="input-group-text"
-                            >1. preču ražošanas solis</span
-                        >
+                        <span class="input-group-text">
+                            1. preču ražošanas solis
+                            </span>
                     </div>
                     <input
                         v-model="firstManufactureStep"
@@ -63,9 +70,9 @@
             <div class="col-12 col-md-6 mb-4">
                 <div class="input-group input-group-lg">
                     <div class="input-group-prepend">
-                        <span class="input-group-text"
-                            >2. preču ražošanas solis</span
-                        >
+                        <span class="input-group-text">
+                            2. preču ražošanas solis
+                            </span>
                     </div>
                     <input
                         v-model="secondManufactureStep"
@@ -81,6 +88,9 @@
             <div class="col-6 d-flex align-items-center">
                 <img src="@/assets/stock.png" class="mr-2" height="50" />
                 <p class="m-0">Krājumi: {{ stock }}</p>
+                <p class="text-success h6" style="opacity: 0;" ref="stockAdded">
+                    + {{ arrivingManufactureStep }}
+                </p>
             </div>
             <div class="col-6 d-flex align-items-center">
                 <img src="@/assets/out-stock.png" class="mr-2" height="50" />
@@ -90,6 +100,8 @@
         <button
             type="button"
             class="btn btn-primary btn-lg btn-block mb-5"
+            :class="{ disabled: !orderButton }"
+            :disabled="!orderButton"
             @click="manufacture()"
         >
             Sākt ražošanu
@@ -118,6 +130,7 @@ export default {
             quantityToManufacture: null,
             firstManufactureStep: null,
             secondManufactureStep: null,
+            arrivingManufactureStep: null,
             stock: 10,
             backlogOrders: 0,
             stats: {
@@ -126,38 +139,71 @@ export default {
                 stock: [],
                 backlog: [],
             },
+            orderButton: true,
         };
     },
     methods: {
         manufacture() {
+            this.$refs.animatedTruck.classList.add("manufacturer-truck");
+            this.orderButton = false;
             this.incomingOrderQty = this.getIncomingOrderQty();
+            this.moveIncomingDelivery();
+            this.deliverAndProcessIncomingOrder();
+            this.addToStats();
+            setTimeout(() => {
+                this.orderButton = true;
+                this.$refs.animatedTruck.classList.remove("manufacturer-truck");
+                this.$refs.stockAdded.classList.remove("fade-element");
+            }, 2000);
+        },
+        getIncomingOrderQty() {
+            return Math.floor(Math.random() * 10);
+        },
+        moveIncomingDelivery() {
+            if (this.secondManufactureStep !== null) {
+                this.arrivingManufactureStep = this.secondManufactureStep;
+            }
+
             if (this.firstManufactureStep !== null) {
                 this.secondManufactureStep = this.firstManufactureStep;
             }
             this.firstManufactureStep = this.quantityToManufacture;
-            this.deliverInomingOrder();
-            this.addToStats();
-        },
-        getIncomingOrderQty() {
-            return Math.floor(Math.random() * 50);
-        },
-        deliverInomingOrder() {
-            this.stock = parseInt(this.stock, 10);
-            this.stock += this.secondManufactureStep
-                ? this.secondManufactureStep
-                : 0;
-            this.stock -= this.incomingOrderQty;
 
-            if (this.stock < 0) {
-                this.backlogOrders += -1 * this.stock;
-                this.stock = 0;
-            } else if (this.stock > 0) {
-                if (this.backlogOrders > this.stock) {
-                    const tempBacklogOrders = this.stock;
-                    this.stock -= tempBacklogOrders;
-                    this.backlogOrders -= tempBacklogOrders;
+        },
+        deliverAndProcessIncomingOrder() {
+            // Processing ordered items to stock
+            this.stock += this.arrivingManufactureStep
+                ? this.arrivingManufactureStep
+                : 0;
+
+            if (this.arrivingManufactureStep) {
+                this.$refs.stockAdded.classList.add("fade-element");
+            }
+
+            // Processing order qty.
+            // 1. Check backlog, if there are orders then process
+            if (this.backlogOrders > 0) {
+                const availableOrderDifference = this.stock - this.backlogOrders;
+
+                if (availableOrderDifference >= 0) {
+                    this.backlogOrders = 0;
                 } else {
-                    this.stock -= this.backlogOrders;
+                    this.backlogOrders -= this.stock;
+                }
+
+                this.stock = availableOrderDifference;
+            }
+
+            // 2. After processing backlog, if there where not enough items to process orders, 
+            // then incoming and difference add to backlogOrders
+            if (this.stock <= 0) {
+                this.backlogOrders += this.incomingOrderQty;
+                this.stock = 0;
+            } else if (this.stock > 0) {   //3. If there were enough items, then process incoming 
+                this.stock -= this.incomingOrderQty;
+                if (this.stock <= 0) {
+                    this.backlogOrders += (this.stock * -1);
+                    this.stock = 0;
                 }
             }
         },
@@ -173,17 +219,37 @@ export default {
 
 <style scoped>
 .manufacturer-truck {
-    animation: drive 3s;
+    animation: drive 2s;
     position: relative;
 }
 
 @keyframes drive {
-    from {
+    0% {
         left: 0;
     }
 
-    to {
-        left: 80%;
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        left: calc(100% - 160px);
+        opacity: 0;
     }
 }
+
+.fade-element {
+    animation: fade 2s;
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
 </style>
