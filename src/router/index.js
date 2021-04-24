@@ -1,17 +1,23 @@
 import { createWebHistory, createRouter } from "vue-router";
 import Home from "@/views/Home.vue";
-import Manufacturer from "@/views/Manufacturer.vue";
+import Wholesaler from "@/views/Wholesaler.vue";
+import NotFound from "@/views/NotFound.vue";
 
 const routes = [
   {
     path: "/",
-    name: "Home",
+    name: "home",
     component: Home,
   },
   {
-    path: "/manufacturer",
-    name: "Manufacturer",
-    component: Manufacturer,
+    path: "/wholesaler",
+    name: "wholesaler",
+    props: true,
+    component: Wholesaler,
+  },
+  {
+    path: "/:catchAll(.*)",
+    component: NotFound,
   },
 ];
 

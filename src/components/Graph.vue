@@ -1,12 +1,12 @@
 <template>
     <div>
-        <h2 class="text-center mb-4">Spēlētāja stāvokļu grafiks</h2>
-        <canvas id="order-chart"></canvas>
+        <canvas :id="graphId"></canvas>
     </div>
 </template>
 
 <script>
 import Chart from "chart.js/auto";
+import _ from "lodash";
 
 export default {
     name: "Graph",
@@ -27,12 +27,17 @@ export default {
             },
         },
     },
+    computed: {
+        graphId() {
+            return `order-chart-${_.uniqueId()}`;
+        }
+    },
     mounted() {
         this.drawGraph();
     },
     methods: {
         async drawGraph(data = []) {
-            const ctx = document.getElementById("order-chart");
+            const ctx = document.getElementById(this.graphId);
 
             if (this.graph) {
                 this.graph.destroy();
@@ -73,6 +78,12 @@ export default {
                             borderColor: "rgba(255, 99, 71,.5)",
                             borderWidth: 3,
                         },
+                         {
+                            label: "Izmaksas",
+                            data: data.costs,
+                            borderColor: "rgba(145, 22, 71,.5)",
+                            borderWidth: 3,
+                        },
                     ],
                 },
                 options: {
@@ -80,7 +91,7 @@ export default {
                     fill: false,
                     scales: {
                         y: {
-                            suggestedMin: -20,
+                            suggestedMin: -5,
                         }
                     }
                 },
