@@ -9,46 +9,34 @@ import Chart from "chart.js/auto";
 import _ from "lodash";
 
 export default {
-    name: "Graph",
+    name: "ResultGraph",
     props: {
         chartData: {
             type: Object,
             required: true,
         },
+        statType: {
+            type: String,
+            default: 'incomingOrders'
+        }
     },
     data: () => ({
         graph: null,
     }),
-    watch: {
-        chartData: {
-            deep: true,
-            handler(newData) {
-                this.drawGraph(newData);
-            },
-        },
-    },
     computed: {
         graphId() {
             return `order-chart-${_.uniqueId()}`;
         }
     },
     mounted() {
-        this.drawGraph();
+        this.drawGraph(this.chartData);
     },
     methods: {
         async drawGraph(copyData = []) {
             const data = JSON.parse(JSON.stringify(copyData));
             const ctx = document.getElementById(this.graphId);
 
-            if (this.graph) {
-                this.graph.destroy();
-            }
-
-            if (!data?.incomingOrders?.length) {
-                return;
-            }
-
-            const labels = data?.incomingOrders?.map((d, i) => ++i);
+            const labels = data.retailer.stats[this.statType]?.map((d, i) => ++i);
 
             this.graph = await new Chart(ctx, {
                 type: "line",
@@ -56,27 +44,26 @@ export default {
                     labels: labels,
                     datasets: [
                         {
-                            label: "Ienākošie pasūtijumi",
-                            data: data.incomingOrders,
+                            label: data.retailer.title,
+                            data: data.retailer.stats[this.statType],
                             borderColor: "rgba(54,73,93,.5)",
                             borderWidth: 3,
                         },
                         {
-                            label: "Pasūtīts",
-                            data: data.ordered,
+                            label: data.wholesaler.title,
+                            data: data.wholesaler.stats[this.statType],
                             borderColor: "rgba(71, 183,132,.5",
                             borderWidth: 3,
-                            type: 'bar',
                         },
                         {
-                            label: "Krājumi",
-                            data: data.stock,
+                            label: data.distributor.title,
+                            data: data.distributor.stats[this.statType],
                             borderColor: "rgba(255, 165, 0,.5)",
                             borderWidth: 3,
                         },
                         {
-                            label: "Atpakaļsūtijumi",
-                            data: data.backlog,
+                            label: data.manufacturer.title,
+                            data: data.manufacturer.stats[this.statType],
                             borderColor: "rgba(255, 99, 71,.5)",
                             borderWidth: 3,
                         },
@@ -85,11 +72,6 @@ export default {
                 options: {
                     responsive: true,
                     fill: false,
-                    scales: {
-                        y: {
-                            suggestedMin: -5,
-                        }
-                    }
                 },
             });
         },

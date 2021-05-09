@@ -1,5 +1,5 @@
-const STOCK_COSTS = 1;
-const BACKLOG_COSTS = 2;
+export const STOCK_COSTS = 1;
+export const BACKLOG_COSTS = 2;
 
 export const processOrder = {
     data: () => ({

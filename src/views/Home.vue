@@ -17,7 +17,36 @@
                     </button>
                 </div>
             </div>
+
             <template v-if="gameSettings.pickedRole">
+                <!-- <div class="d-flex justify-content-center">
+                    <div class="w-100 mr-3">
+                        <p class="lead">
+                            Krājumu maksa par 1 vienību:
+                            {{ gameSettings.stockCosts }}
+                        </p>
+                        <input
+                            type="number"
+                            class="form-control mb-4"
+                            min="1"
+                            max="10"
+                            v-model="gameSettings.stockCosts"
+                        />
+                    </div>
+                    <div class="w-100">
+                        <p class="lead">
+                            Atpakaļsūtijumu maksa par 1 vienību:
+                            {{ gameSettings.backorderCosts }}
+                        </p>
+                        <input
+                            type="number"
+                            class="form-control mb-4"
+                            min="1"
+                            max="10"
+                            v-model="gameSettings.backorderCosts"
+                        />
+                    </div>
+                </div> -->
                 <p class="lead">
                     Izvēlies raundu skaitu: {{ gameSettings.roundCount }}
                 </p>
@@ -70,6 +99,8 @@ export default {
         ],
         gameSettings: {
             pickedRole: null,
+            stockCosts: 1,
+            backorderCosts: 2,
             roundCount: 1,
         },
     }),
