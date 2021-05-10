@@ -27,6 +27,11 @@ export default {
     round: {
       type: Number,
       required: true
+    },
+    incomingDelivery: {
+      type: Number,
+      required: false,
+      default: 0,
     }
   },
   watch: {
@@ -48,6 +53,7 @@ export default {
   methods: {
     order() {
       this.incomingOrderQty = this.incomingOrder;
+      this.incomingChainDelivery = this.incomingDelivery;
       if (
         this.stats.incomingOrders.length &&
         this.stock < this.orderAgainLevelCalcROP()
@@ -76,9 +82,10 @@ export default {
     },
     orderCountQ() {
       const Ud = this.incomingOrderAvarage,
-        Ch = STOCK_COSTS;
+        Ch = STOCK_COSTS,
+        Co = 2;
 
-      const Q = Math.sqrt((2 * Ud) / Ch);
+      const Q = Math.sqrt((2 * Ud * Co) / Ch);
 
       return Math.floor(Q);
     },

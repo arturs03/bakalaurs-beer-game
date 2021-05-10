@@ -4,17 +4,12 @@
       v-if="!parsedGameSettings"
       :to="{ name: 'home' }"
       class="btn btn-outline-danger"
-      @click="resetGameState()"
     >
       Uz sākumlapu
     </router-link>
     <template v-else>
       <div class="d-flex">
-        <router-link
-          :to="{ name: 'home' }"
-          class="btn btn-outline-danger mr-5"
-          @click="resetGameState()"
-        >
+        <router-link :to="{ name: 'home' }" class="btn btn-outline-danger mr-5">
           Beigt spēli
         </router-link>
         <div class="custom-control custom-switch">
@@ -78,7 +73,7 @@
               </span>
             </div>
             <input
-              v-model.number="quantityToManufacture"
+              v-model.number="quantityToOrder"
               type="text"
               class="form-control"
               aria-label="Preču ražošanas daudzums"
@@ -141,9 +136,9 @@
         v-if="currentRound !== parseInt(parsedGameSettings.roundCount)"
         type="button"
         class="btn btn-primary btn-lg btn-block mb-5"
-        :class="{ disabled: !orderButton }"
+        :class="{ disabled: !isOrderButtonEnabled }"
         :disabled="
-          !orderButton ||
+          !isOrderButtonEnabled ||
             currentRound === parseInt(parsedGameSettings.roundCount)
         "
         @click="order()"
@@ -174,7 +169,9 @@
           <BotPlayer
             :incomingOrder="distributor.quantity"
             :round="currentRound"
+            :incomingDelivery="manufacturerIncomingDelivery"
             @ordered="manufacturerOrdered"
+            @deliver="manufacturerDeliver"
           />
         </div>
         <div class="col-12 col-md-4">
@@ -184,7 +181,9 @@
           <BotPlayer
             :incomingOrder="wholesaler.quantity"
             :round="currentRound"
+            :incomingDelivery="distributorIncomingDelivery"
             @ordered="distributorOrdered"
+            @deliver="distributorDeliver"
           />
         </div>
         <div class="col-12 col-md-4">
@@ -192,9 +191,11 @@
             Mazumtirgotājs
           </p>
           <BotPlayer
-            :incomingOrder="clientsOrdered"
+            :incomingOrder="customerOrdered"
             :round="currentRound"
+            :incomingDelivery="retailerIncomingDelivery"
             @ordered="retailerOrdered"
+            @deliver="retailerDeliver"
           />
         </div>
       </div>
@@ -223,7 +224,7 @@ export default {
     }
   },
   data: () => ({
-    orderButton: true,
+    isOrderButtonEnabled: true,
     currentRound: 0,
     manufacturer: {
       quantity: 0,
@@ -241,9 +242,14 @@ export default {
       quantity: 0,
       stats: []
     },
-    clientsOrdered: 0,
+    manufacturerIncomingDelivery: 0,
+    distributorIncomingDelivery: 0,
+    wholesalerIncomingDelivery: 0,
+    retailerIncomingDelivery: 0,
+    customerOrdered: 0,
     showOtherPlayers: true,
-    incomingOrderPatternArray: []
+    incomingOrderPatternArray: [],
+    quantityToOrder: 0
   }),
   computed: {
     parsedGameSettings() {
@@ -255,20 +261,22 @@ export default {
   },
   methods: {
     order() {
-      this.orderButton = false;
-      this.wholesaler.quantity = this.quantityToManufacture;
-      this.clientsOrdered = this.getIncomingOrderQty();
+      this.isOrderButtonEnabled = false;
+      this.wholesaler.quantity = this.quantityToOrder;
+
       this.incomingOrderQty = this.retailer.quantity;
+      this.incomingChainDelivery = this.wholesalerIncomingDelivery;
+      this.customerOrdered = this.getCustomerIncomingOrderQty();
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
       this.addToStats();
       setTimeout(() => {
-        this.orderButton = true;
+        this.isOrderButtonEnabled = true;
       }, 2000);
       this.wholesaler.stats = this.stats;
-       this.currentRound += 1;
+      this.currentRound += 1;
     },
-    getIncomingOrderQty() {
+    getCustomerIncomingOrderQty() {
       return this.incomingOrderPatternArray[this.currentRound];
     },
     generateStandartIncomingOrderQty() {
@@ -285,17 +293,24 @@ export default {
       }
       return prepparedArray;
     },
-    resetGameState() {
-      // Object.assign(this.$data, this.$options.data.apply(this));
-    },
     manufacturerOrdered(data) {
       this.manufacturer = Object.assign({}, data);
+      this.manufacturerIncomingDelivery = this.manufacturer.quantity;
+    },
+    manufacturerDeliver(data) {
+      this.distributorIncomingDelivery = data;
     },
     distributorOrdered(data) {
       this.distributor = Object.assign({}, data);
     },
+    distributorDeliver(data) {
+      this.wholesalerIncomingDelivery = data;
+    },
     retailerOrdered(data) {
       this.retailer = Object.assign({}, data);
+    },
+    retailerDeliver(data) {
+      this.retailerIncomingDelivery = data;
     },
     gameResults() {
       return JSON.stringify({

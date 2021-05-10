@@ -18,6 +18,7 @@ export const processOrder = {
             backlog: [],
             costs: [],
         },
+        incomingChainDelivery: 0,
     }),
     methods: {
         moveIncomingDelivery() {
@@ -28,9 +29,10 @@ export const processOrder = {
             if (this.firstManufactureStep !== null) {
                 this.secondManufactureStep = this.firstManufactureStep;
             }
-            this.firstManufactureStep = this.quantityToManufacture;
+            this.firstManufactureStep = this.incomingChainDelivery;
         },
         deliverAndProcessIncomingOrder() {
+            let deliver = 0;
             // Processing ordered items to stock
             this.stock += this.arrivingManufactureStep
                 ? this.arrivingManufactureStep
@@ -47,8 +49,10 @@ export const processOrder = {
                     this.stock - this.backlogOrders;
 
                 if (availableOrderDifference >= 0) {
+                    deliver = this.backlogOrders;
                     this.backlogOrders = 0;
                 } else {
+                    deliver = this.stock;
                     this.backlogOrders -= this.stock;
                 }
 
@@ -63,11 +67,15 @@ export const processOrder = {
             } else if (this.stock > 0) {
                 //3. If there were enough items, then process incoming
                 this.stock -= this.incomingOrderQty;
+                deliver += this.incomingOrderQty;
                 if (this.stock <= 0) {
                     this.backlogOrders += this.stock * -1;
+                    deliver -= this.backlogOrders;
                     this.stock = 0;
                 }
             }
+
+            this.$emit('deliver', deliver);
 
             this.calculateCosts();
         },
@@ -76,7 +84,7 @@ export const processOrder = {
         },
         addToStats() {
             this.stats.incomingOrders.push(this.incomingOrderQty);
-            this.stats.ordered.push(this.quantityToManufacture);
+            this.stats.ordered.push(this.incomingDelivery);
             this.stats.stock.push(this.stock);
             this.stats.backlog.push(this.backlogOrders);
             this.stats.costs.push(this.costs);
