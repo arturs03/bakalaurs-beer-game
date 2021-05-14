@@ -164,14 +164,14 @@
       <div v-show="showOtherPlayers" class="row">
         <div class="col-12 col-md-4">
           <p class="lead">
-            Ražotājs
+            Mazumtirgotājs
           </p>
           <BotPlayer
-            :incomingOrder="distributor.quantity"
+            :incomingOrder="customerOrdered"
             :round="currentRound"
-            :incomingDelivery="manufacturerIncomingDelivery"
-            @ordered="manufacturerOrdered"
-            @deliver="manufacturerDeliver"
+            :incomingDelivery="retailerIncomingDelivery"
+            @ordered="retailerOrdered"
+            @deliver="retailerDeliver"
           />
         </div>
         <div class="col-12 col-md-4">
@@ -188,14 +188,14 @@
         </div>
         <div class="col-12 col-md-4">
           <p class="lead">
-            Mazumtirgotājs
+            Ražotājs
           </p>
           <BotPlayer
-            :incomingOrder="customerOrdered"
+            :incomingOrder="distributor.quantity"
             :round="currentRound"
-            :incomingDelivery="retailerIncomingDelivery"
-            @ordered="retailerOrdered"
-            @deliver="retailerDeliver"
+            :incomingDelivery="manufacturerIncomingDelivery"
+            @ordered="manufacturerOrdered"
+            @deliver="manufacturerDeliver"
           />
         </div>
       </div>
@@ -263,6 +263,7 @@ export default {
     order() {
       this.isOrderButtonEnabled = false;
       this.wholesaler.quantity = this.quantityToOrder;
+      this.incomingDelivery = this.quantityToOrder;
 
       this.incomingOrderQty = this.retailer.quantity;
       this.incomingChainDelivery = this.wholesalerIncomingDelivery;
@@ -307,6 +308,7 @@ export default {
       this.wholesalerIncomingDelivery = data;
     },
     retailerOrdered(data) {
+      console.log(data);
       this.retailer = Object.assign({}, data);
     },
     retailerDeliver(data) {

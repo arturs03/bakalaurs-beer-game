@@ -6,7 +6,7 @@
     <p>Pasūtīs: {{ quantityToManufacture }}</p>
     <p>Krājumi: {{ stock }}</p>
     <p>Atpakaļsūtijumi: {{ backlogOrders }}</p>
-    <p>ROP: {{ orderAgainLevelCalcROP() }}</p>
+    <p>ROP: {{ orderAgainLevelCalcROP }}</p>
   </div>
 </template>
 
@@ -31,7 +31,7 @@ export default {
     incomingDelivery: {
       type: Number,
       required: false,
-      default: 0,
+      default: 0
     }
   },
   watch: {
@@ -45,35 +45,49 @@ export default {
     },
     incomingOrderAvarage() {
       if (!this.stats.incomingOrders.length) {
-        return 0
+        return 0;
       }
-      return this.stats.incomingOrders.reduce(((total, num) => total + num)) / this.stats.incomingOrders.length;
+      return (
+        this.stats.incomingOrders.reduce((total, num) => total + num) /
+        this.stats.incomingOrders.length
+      );
+    },
+    orderAgainLevelCalcROP() {
+      const Ud = this.incomingOrderAvarage || 1,
+        LT = 2,
+        z = 1.65;
+
+      const Od = this.standardDeviation(this.stats.incomingOrders);
+
+      const ROP = Ud * LT + z * Od * Math.sqrt(LT);
+      // const ROP = Ud * (LT + 1) * z * Od * Math.sqrt(LT + 1);
+
+      return Math.floor(ROP);
     }
   },
   methods: {
     order() {
       this.incomingOrderQty = this.incomingOrder;
       this.incomingChainDelivery = this.incomingDelivery;
-      if (
-        this.stats.incomingOrders.length &&
-        this.stock < this.orderAgainLevelCalcROP()
-      ) {
+      this.moveIncomingDelivery();
+      this.deliverAndProcessIncomingOrder();
+
+      console.log(this.stock, this.orderAgainLevelCalcROP);
+      if (this.stock < this.orderAgainLevelCalcROP){
         // Padomat vai sitos divus nesamainit vietam
-        this.quantityToManufacture = this.orderCountQ();
+        this.quantityToManufacture = this.orderAgainLevelCalcROP;
       } else {
         this.quantityToManufacture = 0;
       }
 
-      this.moveIncomingDelivery();
-      this.deliverAndProcessIncomingOrder();
       this.addToStats();
       setTimeout(() => {
         this.orderButton = true;
       }, 2000);
 
       const statsCopy = JSON.parse(JSON.stringify(this.stats));
-    
-      const botInfo =  {
+
+      const botInfo = {
         quantity: this.quantityToManufacture,
         stats: statsCopy
       };
@@ -89,25 +103,14 @@ export default {
 
       return Math.floor(Q);
     },
-    orderAgainLevelCalcROP() {
-      const Ud = this.incomingOrderAvarage,
-        LT = 3,
-        z = 1.65;
 
-      const Od = this.standardDeviation(this.stats.incomingOrders);
-
-      const ROP = Ud * LT + z * Od * Math.sqrt(LT);
-
-      return Math.floor(ROP);
-    },
     standardDeviation(arr, usePopulation = false) {
       const mean = [...arr].reduce((acc, val) => acc + val, 0) / arr.length;
-      console.log(mean);
       return Math.sqrt(
         arr
           .reduce((acc, val) => acc.concat((val - mean) ** 2), [])
           .reduce((acc, val) => acc + val, 0) /
-          (arr.length - (usePopulation ? 0 : 1))
+          (arr.length - (usePopulation ? 0 : 1)) || 1
       );
     }
   }

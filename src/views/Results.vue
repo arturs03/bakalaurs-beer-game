@@ -16,7 +16,8 @@
       >
         <h5>{{ chain.title }}</h5>
         <p>Kopējās izmaksas: {{ chain.stats.costs[roundCount - 1] }}</p>
-        <p>Mean: {{ mean(chain.stats.incomingOrders) }}</p>
+        <p>Mean: {{ mean(chain.stats.ordered) }}</p>
+        <p>SD: {{ standardDeviation(chain.stats.ordered) }}</p>
       </div>
     </div>
     <div class="row">
@@ -90,6 +91,16 @@ export default {
           this.roundCount - 1
         ];
       }
+    },
+    standardDeviation(arr, usePopulation = false) {
+      const mean = [...arr].reduce((acc, val) => acc + val, 0) / arr.length;
+      console.log(mean);
+      return Math.sqrt(
+        arr
+          .reduce((acc, val) => acc.concat((val - mean) ** 2), [])
+          .reduce((acc, val) => acc + val, 0) /
+          (arr.length - (usePopulation ? 0 : 1))
+      );
     }
   }
 };
