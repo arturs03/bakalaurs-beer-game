@@ -167,7 +167,7 @@
             Mazumtirgotājs
           </p>
           <BotPlayer
-            :incomingOrder="customerOrdered"
+            :incomingOrder="getCustomerIncomingOrderQty()"
             :round="currentRound"
             :incomingDelivery="retailerIncomingDelivery"
             @ordered="retailerOrdered"
@@ -179,7 +179,7 @@
             Izplatītājs
           </p>
           <BotPlayer
-            :incomingOrder="wholesaler.quantity"
+            :incomingOrder="quantityToOrder"
             :round="currentRound"
             :incomingDelivery="distributorIncomingDelivery"
             @ordered="distributorOrdered"
@@ -246,7 +246,6 @@ export default {
     distributorIncomingDelivery: 0,
     wholesalerIncomingDelivery: 0,
     retailerIncomingDelivery: 0,
-    customerOrdered: 0,
     showOtherPlayers: true,
     incomingOrderPatternArray: [],
     quantityToOrder: 0
@@ -262,18 +261,16 @@ export default {
   methods: {
     order() {
       this.isOrderButtonEnabled = false;
-      this.wholesaler.quantity = this.quantityToOrder;
-      this.incomingDelivery = this.quantityToOrder;
-
       this.incomingOrderQty = this.retailer.quantity;
+      this.quantityToManufacture = this.quantityToOrder;
       this.incomingChainDelivery = this.wholesalerIncomingDelivery;
-      this.customerOrdered = this.getCustomerIncomingOrderQty();
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
       this.addToStats();
       setTimeout(() => {
         this.isOrderButtonEnabled = true;
       }, 2000);
+      this.wholesaler.quantity = this.quantityToOrder;
       this.wholesaler.stats = this.stats;
       this.currentRound += 1;
     },
@@ -308,7 +305,6 @@ export default {
       this.wholesalerIncomingDelivery = data;
     },
     retailerOrdered(data) {
-      console.log(data);
       this.retailer = Object.assign({}, data);
     },
     retailerDeliver(data) {

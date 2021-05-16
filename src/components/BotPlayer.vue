@@ -1,6 +1,11 @@
 <template>
   <div>
     <graph :chart-data="stats" />
+    <div class="d-flex">
+      <p class="mr-2 text-danger">{{ arrivingManufactureStep }}</p>
+      <p class="mr-2 text-warning">{{ secondManufactureStep }}</p>
+      <p class="mr-2 text-info">{{ firstManufactureStep }}</p>
+    </div>
     <p>Ienākošais pasūtijums: {{ incomingOrderQty }}</p>
     <p>Kopējās izmaksas: {{ totalCosts }}</p>
     <p>Pasūtīs: {{ quantityToManufacture }}</p>
@@ -12,7 +17,7 @@
 
 <script>
 import Graph from "@/components/Graph";
-import { STOCK_COSTS, processOrder } from "@/common/mixins/processOrder.js";
+import { processOrder } from "@/common/mixins/processOrder.js";
 export default {
   name: "BotPlayer",
   components: {
@@ -34,6 +39,9 @@ export default {
       default: 0
     }
   },
+  data: () => ({
+    roundOrdered: null,
+  }),
   watch: {
     round() {
       this.order();
@@ -53,11 +61,11 @@ export default {
       );
     },
     orderAgainLevelCalcROP() {
-      const Ud = this.incomingOrderAvarage || 1,
+      const Ud = this.incomingOrderAvarage,
         LT = 2,
-        z = 1.65;
+        z = 1.95;
 
-      const Od = this.standardDeviation(this.stats.incomingOrders);
+      const Od = this.standardDeviation(this.stats.incomingOrders, false);
 
       const ROP = Ud * LT + z * Od * Math.sqrt(LT);
       // const ROP = Ud * (LT + 1) * z * Od * Math.sqrt(LT + 1);
@@ -72,18 +80,12 @@ export default {
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
 
-      console.log(this.stock, this.orderAgainLevelCalcROP);
-      if (this.stock < this.orderAgainLevelCalcROP){
-        // Padomat vai sitos divus nesamainit vietam
-        this.quantityToManufacture = this.orderAgainLevelCalcROP;
-      } else {
-        this.quantityToManufacture = 0;
-      }
+      this.orderCountQ();
 
       this.addToStats();
-      setTimeout(() => {
-        this.orderButton = true;
-      }, 2000);
+      // setTimeout(() => {
+      //   this.orderButton = true;
+      // }, 100);
 
       const statsCopy = JSON.parse(JSON.stringify(this.stats));
 
@@ -95,14 +97,45 @@ export default {
       this.$emit("ordered", botInfo);
     },
     orderCountQ() {
-      const Ud = this.incomingOrderAvarage,
-        Ch = STOCK_COSTS,
-        Co = 2;
+      const LT = 3;
 
-      const Q = Math.sqrt((2 * Ud * Co) / Ch);
+      if (this.stock < this.orderAgainLevelCalcROP) {
+        // if (this.incomingOrderQty > this.stats.incomingOrders) {
+        //   this.quantityToManufacture =
+        //     this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+        // } else {
+        //   this.quantityToManufacture = this.incomingOrderQty + 1;
+        // }
+        if (this.roundOrdered <= this.round || !this.roundOrdered) {
+          this.quantityToManufacture = this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+          this.roundOrdered = this.round + LT;
+        } else {
+            if (this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]) {
 
-      return Math.floor(Q);
+              this.quantityToManufacture = this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+            }
+
+            this.quantityToManufacture = this.incomingOrderQty + 1;
+        }
+      } else {
+        // if (this.round === 1) {
+        //   this.quantityToManufacture = this.orderAgainLevelCalcROP;
+        // } else {
+        //   this.quantityToManufacture = 0;
+        // }
+         this.quantityToManufacture = 0;
+      }
     },
+
+    // orderCountQ() {
+    //   const Ud = this.incomingOrderAvarage,
+    //     Ch = STOCK_COSTS,
+    //     Co = 2;
+
+    //   const Q = Math.sqrt((2 * Ud * Co) / Ch);
+
+    //   return Math.floor(Q);
+    // },
 
     standardDeviation(arr, usePopulation = false) {
       const mean = [...arr].reduce((acc, val) => acc + val, 0) / arr.length;
@@ -110,7 +143,7 @@ export default {
         arr
           .reduce((acc, val) => acc.concat((val - mean) ** 2), [])
           .reduce((acc, val) => acc + val, 0) /
-          (arr.length - (usePopulation ? 0 : 1)) || 1
+          (arr.length - (usePopulation ? 0 : 1)) || 0
       );
     }
   }

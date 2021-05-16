@@ -17,6 +17,7 @@ export const processOrder = {
             stock: [],
             backlog: [],
             costs: [],
+            incomingChainDelivery: [],
         },
         incomingChainDelivery: 0,
     }),
@@ -84,10 +85,12 @@ export const processOrder = {
         },
         addToStats() {
             this.stats.incomingOrders.push(this.incomingOrderQty);
-            this.stats.ordered.push(this.incomingDelivery);
+            // this.stats.ordered.push(this.incomingDelivery);
+            this.stats.ordered.push(this.quantityToManufacture);
             this.stats.stock.push(this.stock);
             this.stats.backlog.push(this.backlogOrders);
             this.stats.costs.push(this.costs);
+            this.stats.incomingChainDelivery.push(this.incomingChainDelivery);
         },
     }
 }
