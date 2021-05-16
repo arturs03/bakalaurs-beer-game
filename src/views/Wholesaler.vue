@@ -141,7 +141,7 @@
           !isOrderButtonEnabled ||
             currentRound === parseInt(parsedGameSettings.roundCount)
         "
-        @click="order()"
+        @click="startChain()"
       >
         Pasūtīt
       </button>
@@ -167,6 +167,8 @@
             Mazumtirgotājs
           </p>
           <BotPlayer
+            :position="1"
+            :currentTurn="currentTurn"
             :incomingOrder="getCustomerIncomingOrderQty()"
             :round="currentRound"
             :incomingDelivery="retailerIncomingDelivery"
@@ -179,6 +181,8 @@
             Izplatītājs
           </p>
           <BotPlayer
+            :position="3"
+            :currentTurn="currentTurn"
             :incomingOrder="quantityToOrder"
             :round="currentRound"
             :incomingDelivery="distributorIncomingDelivery"
@@ -191,6 +195,8 @@
             Ražotājs
           </p>
           <BotPlayer
+            :position="4"
+            :currentTurn="currentTurn"
             :incomingOrder="distributor.quantity"
             :round="currentRound"
             :incomingDelivery="manufacturerIncomingDelivery"
@@ -248,8 +254,16 @@ export default {
     retailerIncomingDelivery: 0,
     showOtherPlayers: true,
     incomingOrderPatternArray: [],
-    quantityToOrder: 0
+    quantityToOrder: 0,
+    currentTurn: 0,
   }),
+  watch: {
+    currentTurn(newVal) {
+      if (2 === newVal) {
+        this.order();
+      }
+    }
+  },
   computed: {
     parsedGameSettings() {
       return JSON.parse(this.gameSettings) ?? null;
@@ -259,19 +273,25 @@ export default {
     this.incomingOrderPatternArray = this.generateStandartIncomingOrderQty();
   },
   methods: {
-    order() {
+    startChain() {
+      this.currentTurn = 1;
+
       this.isOrderButtonEnabled = false;
+      setTimeout(() => {
+        this.isOrderButtonEnabled = true;
+      }, 2000);
+    },
+    order() {
       this.incomingOrderQty = this.retailer.quantity;
       this.quantityToManufacture = this.quantityToOrder;
       this.incomingChainDelivery = this.wholesalerIncomingDelivery;
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
       this.addToStats();
-      setTimeout(() => {
-        this.isOrderButtonEnabled = true;
-      }, 2000);
+
       this.wholesaler.quantity = this.quantityToOrder;
       this.wholesaler.stats = this.stats;
+      this.currentTurn = 3;
       this.currentRound += 1;
     },
     getCustomerIncomingOrderQty() {
@@ -282,8 +302,8 @@ export default {
         max = 8;
 
       const prepparedArray = [];
-      for (let i = 0; i < this.parsedGameSettings.roundCount; i++) {
-        if (i < this.parsedGameSettings.roundCount / 3) {
+      for (let i = 0; i < this.parsedGameSettings.roundCount + 1; i++) {
+        if (i < Math.floor(this.parsedGameSettings.roundCount / 3)) {
           prepparedArray.push(min);
         } else {
           prepparedArray.push(max);
@@ -300,12 +320,14 @@ export default {
     },
     distributorOrdered(data) {
       this.distributor = Object.assign({}, data);
+      this.currentTurn = 4;
     },
     distributorDeliver(data) {
       this.wholesalerIncomingDelivery = data;
     },
     retailerOrdered(data) {
       this.retailer = Object.assign({}, data);
+      this.currentTurn = 2;
     },
     retailerDeliver(data) {
       this.retailerIncomingDelivery = data;
@@ -318,7 +340,7 @@ export default {
         },
         wholesaler: {
           title: "Vairumtirgotājs",
-          stats: this.stats
+          stats: this.wholesaler.stats
         },
         distributor: {
           title: "Izplatītājs",

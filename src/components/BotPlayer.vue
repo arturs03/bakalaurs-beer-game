@@ -37,14 +37,24 @@ export default {
       type: Number,
       required: false,
       default: 0
+    },
+    currentTurn: {
+      type: Number,
+      required: true
+    },
+    position: {
+      type: Number,
+      required: true
     }
   },
   data: () => ({
-    roundOrdered: null,
+    roundOrdered: 0
   }),
   watch: {
-    round() {
-      this.order();
+    currentTurn(newVal) {
+      if (this.position === newVal) {
+        this.order();
+      }
     }
   },
   computed: {
@@ -79,13 +89,9 @@ export default {
       this.incomingChainDelivery = this.incomingDelivery;
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
-
       this.orderCountQ();
 
       this.addToStats();
-      // setTimeout(() => {
-      //   this.orderButton = true;
-      // }, 100);
 
       const statsCopy = JSON.parse(JSON.stringify(this.stats));
 
@@ -100,31 +106,51 @@ export default {
       const LT = 3;
 
       if (this.stock < this.orderAgainLevelCalcROP) {
-        // if (this.incomingOrderQty > this.stats.incomingOrders) {
-        //   this.quantityToManufacture =
-        //     this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
-        // } else {
-        //   this.quantityToManufacture = this.incomingOrderQty + 1;
-        // }
-        if (this.roundOrdered <= this.round || !this.roundOrdered) {
-          this.quantityToManufacture = this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+        if (this.roundOrdered <= this.round) {
+          this.quantityToManufacture =
+            this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
           this.roundOrdered = this.round + LT;
         } else {
-            if (this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]) {
-
-              this.quantityToManufacture = this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
-            }
-
-            this.quantityToManufacture = this.incomingOrderQty + 1;
+          this.quantityToManufacture = 0;
         }
       } else {
-        // if (this.round === 1) {
-        //   this.quantityToManufacture = this.orderAgainLevelCalcROP;
-        // } else {
-        //   this.quantityToManufacture = 0;
-        // }
-         this.quantityToManufacture = 0;
+        this.quantityToManufacture = 0;
       }
+
+      // if (
+      //   this.round > 0 &&
+      //   this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]
+      // ) {
+      //   this.quantityToManufacture =
+      //     this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+      // } else {
+      //   this.quantityToManufacture = this.incomingOrderQty;
+      // }
+
+      // if (this.stock < this.orderAgainLevelCalcROP) {
+      //   if (this.roundOrdered <= this.round || !this.roundOrdered) {
+      //     this.quantityToManufacture =
+      //       this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+      //     this.roundOrdered = this.round + LT;
+      //   } else {
+      //     if (
+      //       this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]
+      //     ) {
+      //       this.quantityToManufacture =
+      //         this.orderAgainLevelCalcROP > 30
+      //           ? 30
+      //           : this.orderAgainLevelCalcROP;
+      //     }
+
+      //     this.quantityToManufacture = this.incomingOrderQty + 1;
+      //   }
+      // } else {
+      //   if (this.round === 1) {
+      //     this.quantityToManufacture = this.incomingOrderQty;
+      //   } else {
+      //     this.quantityToManufacture = 0;
+      //   }
+      // }
     },
 
     // orderCountQ() {

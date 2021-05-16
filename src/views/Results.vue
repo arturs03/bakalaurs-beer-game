@@ -21,6 +21,9 @@
       </div>
     </div>
     <div class="row">
+      <div class="col-12">
+        <graph v-if="parsedGamereResults" :chart-data="parsedGamereResults.wholesaler.stats" />
+      </div>
       <div class="col-12 col-md-6">
         <h5>Krājumi:</h5>
         <result-graph :chart-data="parsedGamereResults" statType="stock" />
@@ -46,6 +49,8 @@
 
 <script>
 import ResultGraph from "@/components/ResultGraph";
+import Graph from "@/components/Graph";
+
 export default {
   name: "Results",
   props: {
@@ -57,11 +62,12 @@ export default {
     }
   },
   components: {
-    ResultGraph
+    ResultGraph,
+    Graph,
   },
   data: () => ({
     totalCosts: 0,
-    chartData: []
+    chartData: null
   }),
   computed: {
     parsedGamereResults() {
@@ -77,7 +83,7 @@ export default {
      * @param {Array} orders
      */
     mean(orders) {
-      return Math.sqrt(orders.reduce((total, num) => total + num));
+      return orders.reduce((total, num) => total + num) / orders.length;
     },
     totalCostsCalc() {
       if (!this.parsedGamereResults?.retailer?.stats?.costs) {

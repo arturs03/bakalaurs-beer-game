@@ -8,7 +8,7 @@ export const processOrder = {
         firstManufactureStep: null,
         secondManufactureStep: null,
         arrivingManufactureStep: null,
-        stock: 10,
+        stock: 12,
         backlogOrders: 0,
         costs: 0,
         stats: {
