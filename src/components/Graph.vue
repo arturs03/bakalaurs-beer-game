@@ -64,28 +64,34 @@ export default {
             {
               label: "Pasūtīts",
               data: data.ordered,
-              borderColor: "rgba(71, 183,132,.5",
+              borderColor: "rgba(255, 192, 203, 0.7)",
               borderWidth: 3,
               type: "bar"
             },
             {
               label: "Krājumi",
               data: data.stock,
-              borderColor: "rgba(255, 165, 0,.5)",
+              borderColor: "rgb(255, 0, 0)",
               borderWidth: 3
             },
             {
               label: "Atpakaļsūtijumi",
               data: data.backlog,
-              borderColor: "rgba(255, 99, 71,.5)",
+              borderColor: "rgba(0, 100, 255, 0.8)",
               borderWidth: 3
             },
+            // {
+            //   label: "Ienākošā piegāde",
+            //   data: data.incomingChainDelivery,
+            //   borderColor: "rgba(100, 150, 200, .5)",
+            //   borderWidth: 3,
+            //   type: "bar"
+            // },
             {
-              label: "Ienākošā piegāde",
-              data: data.incomingChainDelivery,
-              borderColor: "rgba(100, 150, 200, .5)",
-              borderWidth: 3,
-              type: "bar"
+              label: "Izmaksas",
+              data: data.costs,
+              borderColor: "rgba(0, 255, 0, 0.6)",
+              borderWidth: 3
             }
           ]
         },

@@ -303,7 +303,7 @@ export default {
 
       const prepparedArray = [];
       for (let i = 0; i < this.parsedGameSettings.roundCount + 1; i++) {
-        if (i < Math.floor(this.parsedGameSettings.roundCount / 3)) {
+        if (i < 4) {
           prepparedArray.push(min);
         } else {
           prepparedArray.push(max);

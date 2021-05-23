@@ -61,22 +61,28 @@ export default {
     totalCosts() {
       return this.stats.costs[this.stats.costs.length - 1];
     },
+    lastTenOrders() {
+      if (this.stats.incomingOrders?.length > 10) {
+        return this.stats.incomingOrders.slice(
+          Math.max(this.stats.incomingOrders.length - 10, 0)
+        );
+      }
+      return this.stats.incomingOrders;
+    },
     incomingOrderAvarage() {
-      if (!this.stats.incomingOrders.length) {
+      if (!this.stats.incomingOrders?.length) {
         return 0;
       }
-      return (
-        this.stats.incomingOrders.reduce((total, num) => total + num) /
-        this.stats.incomingOrders.length
-      );
+
+      return this.lastTenOrders.reduce((total, num) => total + num) / this.lastTenOrders.length;
     },
     orderAgainLevelCalcROP() {
       const Ud = this.incomingOrderAvarage,
         LT = 2,
         z = 1.95;
 
-      const Od = this.standardDeviation(this.stats.incomingOrders, false);
-
+      const Od = this.standardDeviation(this.lastTenOrders, false);
+console.log(Od);
       const ROP = Ud * LT + z * Od * Math.sqrt(LT);
       // const ROP = Ud * (LT + 1) * z * Od * Math.sqrt(LT + 1);
 
@@ -106,13 +112,13 @@ export default {
       const LT = 3;
 
       if (this.stock < this.orderAgainLevelCalcROP) {
-        if (this.roundOrdered <= this.round) {
-          this.quantityToManufacture =
-            this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
-          this.roundOrdered = this.round + LT;
-        } else {
-          this.quantityToManufacture = 0;
-        }
+        // if (this.roundOrdered <= this.round) {
+        this.quantityToManufacture =
+          this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
+        this.roundOrdered = this.round + LT;
+        // } else {
+        // this.quantityToManufacture = 0;
+        // }
       } else {
         this.quantityToManufacture = 0;
       }

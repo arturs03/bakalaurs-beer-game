@@ -22,7 +22,7 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <graph v-if="parsedGamereResults" :chart-data="parsedGamereResults.wholesaler.stats" />
+        <graph v-if="parsedGamereResults" :chart-data="parsedGamereResults.retailer.stats" />
       </div>
       <div class="col-12 col-md-6">
         <h5>Krājumi:</h5>
@@ -42,6 +42,10 @@
       <div class="col-12 col-md-6">
         <h5>Pasūtīts:</h5>
         <result-graph :chart-data="parsedGamereResults" statType="ordered" />
+      </div>
+        <div class="col-12 col-md-6">
+        <h5>Neizpildītie pasūtijumi:</h5>
+        <result-graph :chart-data="parsedGamereResults" statType="backlog" />
       </div>
     </div>
   </div>
