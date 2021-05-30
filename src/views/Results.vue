@@ -1,9 +1,6 @@
 <template>
   <div>
-    <router-link
-      :to="{ name: 'home' }"
-      class="btn btn-outline-danger mb-5"
-    >
+    <router-link :to="{ name: 'home' }" class="btn btn-outline-danger mb-5">
       Beigt rezultātu apskatu
     </router-link>
     <h2>Rezultāti:</h2>
@@ -22,7 +19,9 @@
     </div>
     <div class="row">
       <div class="col-12">
-        <graph v-if="parsedGamereResults" :chart-data="parsedGamereResults.retailer.stats" />
+        <graph
+          :chart-data="parsedGamereResults.retailer.stats"
+        />
       </div>
       <div class="col-12 col-md-6">
         <h5>Krājumi:</h5>
@@ -43,9 +42,16 @@
         <h5>Pasūtīts:</h5>
         <result-graph :chart-data="parsedGamereResults" statType="ordered" />
       </div>
-        <div class="col-12 col-md-6">
+      <div class="col-12 col-md-6">
         <h5>Neizpildītie pasūtijumi:</h5>
         <result-graph :chart-data="parsedGamereResults" statType="backlog" />
+      </div>
+      <div class="col-12 col-md-6">
+        <h5>Ienākošās piegādes:</h5>
+        <result-graph
+          :chart-data="parsedGamereResults"
+          statType="incomingChainDelivery"
+        />
       </div>
     </div>
   </div>
@@ -67,7 +73,7 @@ export default {
   },
   components: {
     ResultGraph,
-    Graph,
+    Graph
   },
   data: () => ({
     totalCosts: 0,
@@ -76,6 +82,9 @@ export default {
   computed: {
     parsedGamereResults() {
       return JSON.parse(this.gameResults) ?? [];
+    },
+    retailerStats() {
+      return this.parsedGamereResults?.retailer?.stats;
     }
   },
   mounted() {
@@ -93,7 +102,6 @@ export default {
       if (!this.parsedGamereResults?.retailer?.stats?.costs) {
         return;
       }
-      console.log(this.parsedGamereResults);
 
       this.totalCosts = 0;
       for (const chain in this.parsedGamereResults) {
@@ -104,7 +112,6 @@ export default {
     },
     standardDeviation(arr, usePopulation = false) {
       const mean = [...arr].reduce((acc, val) => acc + val, 0) / arr.length;
-      console.log(mean);
       return Math.sqrt(
         arr
           .reduce((acc, val) => acc.concat((val - mean) ** 2), [])

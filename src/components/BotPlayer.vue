@@ -10,7 +10,7 @@
     <p>Kopējās izmaksas: {{ totalCosts }}</p>
     <p>Pasūtīs: {{ quantityToManufacture }}</p>
     <p>Krājumi: {{ stock }}</p>
-    <p>Atpakaļsūtijumi: {{ backlogOrders }}</p>
+    <p>Atliktās piegādes: {{ backlogOrders }}</p>
     <p>ROP: {{ orderAgainLevelCalcROP }}</p>
   </div>
 </template>
@@ -74,7 +74,10 @@ export default {
         return 0;
       }
 
-      return this.lastTenOrders.reduce((total, num) => total + num) / this.lastTenOrders.length;
+      return (
+        this.lastTenOrders.reduce((total, num) => total + num) /
+        this.lastTenOrders.length
+      );
     },
     orderAgainLevelCalcROP() {
       const Ud = this.incomingOrderAvarage,
@@ -82,9 +85,7 @@ export default {
         z = 1.95;
 
       const Od = this.standardDeviation(this.lastTenOrders, false);
-console.log(Od);
       const ROP = Ud * LT + z * Od * Math.sqrt(LT);
-      // const ROP = Ud * (LT + 1) * z * Od * Math.sqrt(LT + 1);
 
       return Math.floor(ROP);
     }
@@ -92,6 +93,7 @@ console.log(Od);
   methods: {
     order() {
       this.incomingOrderQty = this.incomingOrder;
+      this.stats.incomingOrders.push(this.incomingOrderQty);
       this.incomingChainDelivery = this.incomingDelivery;
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
@@ -112,62 +114,13 @@ console.log(Od);
       const LT = 3;
 
       if (this.stock < this.orderAgainLevelCalcROP) {
-        // if (this.roundOrdered <= this.round) {
         this.quantityToManufacture =
           this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
         this.roundOrdered = this.round + LT;
-        // } else {
-        // this.quantityToManufacture = 0;
-        // }
       } else {
         this.quantityToManufacture = 0;
       }
-
-      // if (
-      //   this.round > 0 &&
-      //   this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]
-      // ) {
-      //   this.quantityToManufacture =
-      //     this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
-      // } else {
-      //   this.quantityToManufacture = this.incomingOrderQty;
-      // }
-
-      // if (this.stock < this.orderAgainLevelCalcROP) {
-      //   if (this.roundOrdered <= this.round || !this.roundOrdered) {
-      //     this.quantityToManufacture =
-      //       this.orderAgainLevelCalcROP > 30 ? 30 : this.orderAgainLevelCalcROP;
-      //     this.roundOrdered = this.round + LT;
-      //   } else {
-      //     if (
-      //       this.incomingOrderQty > this.stats.incomingOrders[this.round - 1]
-      //     ) {
-      //       this.quantityToManufacture =
-      //         this.orderAgainLevelCalcROP > 30
-      //           ? 30
-      //           : this.orderAgainLevelCalcROP;
-      //     }
-
-      //     this.quantityToManufacture = this.incomingOrderQty + 1;
-      //   }
-      // } else {
-      //   if (this.round === 1) {
-      //     this.quantityToManufacture = this.incomingOrderQty;
-      //   } else {
-      //     this.quantityToManufacture = 0;
-      //   }
-      // }
     },
-
-    // orderCountQ() {
-    //   const Ud = this.incomingOrderAvarage,
-    //     Ch = STOCK_COSTS,
-    //     Co = 2;
-
-    //   const Q = Math.sqrt((2 * Ud * Co) / Ch);
-
-    //   return Math.floor(Q);
-    // },
 
     standardDeviation(arr, usePopulation = false) {
       const mean = [...arr].reduce((acc, val) => acc + val, 0) / arr.length;

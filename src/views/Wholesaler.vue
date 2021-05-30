@@ -23,7 +23,7 @@
             class="custom-control-label"
             for="otherPlayerVisabilitySwitcher"
           >
-            Rādīt citu spēlētāju spēles stāvokļus
+            Rādīt citu posmu spēles stāvokļus
           </label>
         </div>
       </div>
@@ -53,7 +53,7 @@
           <div class="input-group input-group-lg">
             <div class="input-group-prepend">
               <span class="input-group-text">
-                Ienākošais pasūtijuma lielums
+                Ienākošais pasūtijums
               </span>
             </div>
             <input
@@ -80,11 +80,14 @@
             />
           </div>
         </div>
+        <div class="col-12">
+          <h4 class="my-3 text-center">Preces, kas atrodas ceļā un tiks piegādātas pēc:</h4>
+        </div>
         <div class="col-12 col-md-6 mb-4">
           <div class="input-group input-group-lg">
             <div class="input-group-prepend">
               <span class="input-group-text">
-                1. preču ražošanas solis
+                2 nedēļām
               </span>
             </div>
             <input
@@ -100,7 +103,7 @@
           <div class="input-group input-group-lg">
             <div class="input-group-prepend">
               <span class="input-group-text">
-                2. preču ražošanas solis
+                1 nedēļas
               </span>
             </div>
             <input
@@ -123,7 +126,7 @@
         </div>
         <div class="col-6 d-flex align-items-center">
           <img src="@/assets/out-stock.png" class="mr-2" height="50" />
-          <p class="m-o">Atpakaļsūtijumi: {{ backlogOrders }}</p>
+          <p class="m-o">Atliktās piegādes: {{ backlogOrders }}</p>
         </div>
       </div>
       <p
@@ -171,7 +174,7 @@
             :currentTurn="currentTurn"
             :incomingOrder="getCustomerIncomingOrderQty()"
             :round="currentRound"
-            :incomingDelivery="retailerIncomingDelivery"
+            :incomingDelivery="deliverThisRound"
             @ordered="retailerOrdered"
             @deliver="retailerDeliver"
           />
@@ -204,6 +207,9 @@
             @deliver="manufacturerDeliver"
           />
         </div>
+        <div class="col-12">
+          <NormalDistribution />
+        </div>
       </div>
     </template>
   </div>
@@ -212,11 +218,13 @@
 import Graph from "@/components/Graph";
 import BotPlayer from "@/components/BotPlayer";
 import { processOrder } from "@/common/mixins/processOrder.js";
+import NormalDistribution from "@/components/NormalDistribution";
 export default {
   name: "Wholesaler",
   components: {
     Graph,
-    BotPlayer
+    BotPlayer,
+    NormalDistribution,
   },
   mixins: [processOrder],
   props: {
@@ -255,7 +263,7 @@ export default {
     showOtherPlayers: true,
     incomingOrderPatternArray: [],
     quantityToOrder: 0,
-    currentTurn: 0,
+    currentTurn: 0
   }),
   watch: {
     currentTurn(newVal) {
@@ -279,16 +287,19 @@ export default {
       this.isOrderButtonEnabled = false;
       setTimeout(() => {
         this.isOrderButtonEnabled = true;
+        this.$refs.animatedTruck.classList.remove("manufacturer-truck");
+        this.$refs.stockAdded.classList.add("fade-element");
       }, 2000);
     },
     order() {
+      this.$refs.animatedTruck.classList.add("manufacturer-truck");
       this.incomingOrderQty = this.retailer.quantity;
+      this.stats.incomingOrders.push(this.incomingOrderQty);
       this.quantityToManufacture = this.quantityToOrder;
       this.incomingChainDelivery = this.wholesalerIncomingDelivery;
       this.moveIncomingDelivery();
       this.deliverAndProcessIncomingOrder();
       this.addToStats();
-
       this.wholesaler.quantity = this.quantityToOrder;
       this.wholesaler.stats = this.stats;
       this.currentTurn = 3;
@@ -302,7 +313,8 @@ export default {
         max = 8;
 
       const prepparedArray = [];
-      for (let i = 0; i < this.parsedGameSettings.roundCount + 1; i++) {
+      const roundCount = parseInt(this.parsedGameSettings.roundCount)
+      for (let i = 0; i < roundCount; i++) {
         if (i < 4) {
           prepparedArray.push(min);
         } else {

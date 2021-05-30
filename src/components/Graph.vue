@@ -75,24 +75,17 @@ export default {
               borderWidth: 3
             },
             {
-              label: "Atpakaļsūtijumi",
+              label: "Atliktās piegādes",
               data: data.backlog,
               borderColor: "rgba(0, 100, 255, 0.8)",
               borderWidth: 3
             },
-            // {
-            //   label: "Ienākošā piegāde",
-            //   data: data.incomingChainDelivery,
-            //   borderColor: "rgba(100, 150, 200, .5)",
-            //   borderWidth: 3,
-            //   type: "bar"
-            // },
-            {
-              label: "Izmaksas",
+             {
+              label: "Atliktās piegādes",
               data: data.costs,
-              borderColor: "rgba(0, 255, 0, 0.6)",
+              borderColor: "rgba(0, 255, 0, 0.8)",
               borderWidth: 3
-            }
+            },
           ]
         },
         options: {

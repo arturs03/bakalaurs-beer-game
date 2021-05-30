@@ -5,10 +5,10 @@ export const processOrder = {
     data: () => ({
         incomingOrderQty: null,
         quantityToManufacture: null,
-        firstManufactureStep: null,
-        secondManufactureStep: null,
+        firstManufactureStep: 4,
+        secondManufactureStep: 4,
         arrivingManufactureStep: null,
-        stock: 12,
+        stock: 4,
         backlogOrders: 0,
         costs: 0,
         stats: {
@@ -20,6 +20,7 @@ export const processOrder = {
             incomingChainDelivery: [],
         },
         incomingChainDelivery: 0,
+        deliverThisRound: 0,
     }),
     methods: {
         moveIncomingDelivery() {
@@ -38,10 +39,6 @@ export const processOrder = {
             this.stock += this.arrivingManufactureStep
                 ? this.arrivingManufactureStep
                 : 0;
-
-            if (this.arrivingManufactureStep) {
-                // this.$refs.stockAdded.classList.add("fade-element");
-            }
 
             // Processing order qty.
             // 1. Check backlog, if there are orders then process
@@ -76,6 +73,8 @@ export const processOrder = {
                 }
             }
 
+            this.deliverThisRound = deliver;
+
             this.$emit('deliver', deliver);
 
             this.calculateCosts();
@@ -84,8 +83,6 @@ export const processOrder = {
             this.costs += this.stock * STOCK_COSTS + this.backlogOrders * BACKLOG_COSTS;
         },
         addToStats() {
-            this.stats.incomingOrders.push(this.incomingOrderQty);
-            // this.stats.ordered.push(this.incomingDelivery);
             this.stats.ordered.push(this.quantityToManufacture);
             this.stats.stock.push(this.stock);
             this.stats.backlog.push(this.backlogOrders);
